@@ -130,6 +130,6 @@ void SimplePluginAudioProcessorEditor::updateSlidersFromProcParams()
         sliders[i]->setRange (p.range.start,
                               p.range.end,
                               p.range.interval);
-        sliders[i]->setValue ((double) p.get(), dontSendNotification);
-    }
+        sliders[i]->setValue (static_cast<double> (p.get()), dontSendNotification);
+    }                                              // p.get() is a float
 }
