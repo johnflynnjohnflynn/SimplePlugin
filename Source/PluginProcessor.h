@@ -69,13 +69,37 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
-    //AudioParameterFloat* gain;
+    enum ParameterNames                         // List symbolic names here
+    {                                           // (For params indices in
+        gain,                                   // processBlock())
+        trimL,
+        trimR,
+        saturate
+    };
 
-    //const OwnedArray<AudioProcessorParameter>& paramsView;
+    std::vector<AudioParameterFloat*> params;   // This is a view on our parameters
+                                                // (as subclass AudioParameterFloat)
+                                                // to ease parameter management.
+                                                // (Remember JUCE's AudioProcessor
+                                                // OwnedArray<AudioProcessorParameter>
+                                                // owns the parameters not this
+                                                // container)
+
+    void writeParamsToXml (XmlElement& xml);        // (Use XML of parameters state
+    void setParamsFromXml (const XmlElement& xml);  // for host/plugin communications)
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimplePluginAudioProcessor)
 };
+
+namespace NonMember {                           // Some helper functions that don't
+                                                // need to be inside the processor
+template <typename Element>
+bool indexInVector (int index, const std::vector<Element>& container);
+
+void printParams(const SimplePluginAudioProcessor& processor); // for debugging
+
+} // namespace NonMember
 
 
 #endif  // PLUGINPROCESSOR_H_INCLUDED
