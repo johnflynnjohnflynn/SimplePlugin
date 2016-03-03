@@ -56,7 +56,7 @@ bool SimplePluginAudioProcessor::producesMidi() const
 }
 
 //==============================================================================
-void SimplePluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void SimplePluginAudioProcessor::prepareToPlay (double /*sampleRate*/, int /*samplesPerBlock*/)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -68,7 +68,7 @@ void SimplePluginAudioProcessor::releaseResources()
     // spare memory, etc.
 }
 
-void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& /*midiMessages*/)
 {
     const int totalNumInputChannels  = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
