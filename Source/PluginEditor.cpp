@@ -132,6 +132,8 @@ void SimplePluginAudioProcessorEditor::updateSlidersFromProcParams()
 
         jassert (i < sliders.size());
         jassert (sliders[i]);
+
+                            // (sliders have double values, parameters have floats)
         sliders[i]->setValue (static_cast<double> (p.get()), dontSendNotification);
-    }                                              // p.get() is a float
+    }
 }
