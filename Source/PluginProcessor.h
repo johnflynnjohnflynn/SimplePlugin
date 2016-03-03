@@ -79,9 +79,8 @@ private:
     enum ParameterNames                         // List symbolic names here
     {                                           // (For params indices in
         gain,                                   // processBlock())
-        trimL,
-        trimR,
-        saturate
+        saturate,
+        trim
     };
 
     std::vector<AudioParameterFloat*> params;   // This is a view on our parameters

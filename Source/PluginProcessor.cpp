@@ -19,16 +19,15 @@ SimplePluginAudioProcessor::SimplePluginAudioProcessor()
                 // (Hold pointers to the AudioParameterFloats in our params view)
                 //                             ParamID       Name        Min     Max    Default
     params.push_back (new AudioParameterFloat {"GainID",     "Gain",     -12.0f, 12.0f,   0.0f});
-    params.push_back (new AudioParameterFloat {"TrimLID",    "TrimL",    -96.0f,  0.0f,   0.0f});
-    params.push_back (new AudioParameterFloat {"TrimRID",    "TrimR",    -96.0f,  0.0f,   0.0f});
     params.push_back (new AudioParameterFloat {"SaturateID", "Saturate", -10.0f, 10.0f, -10.0f});
+    params.push_back (new AudioParameterFloat {"TrimID",     "Trim",     -24.0f,  0.0f,   0.0f});
 
 
                 // We add the parameters to the processor, passing ownership to
                 // the processor managed OwnedArray<AudioProcessorParameter>
     for (const auto& p : params) addParameter(p);
 
-    NonMember::printParams(*this);
+    NonMember::printParams(*this);                                                          // debug
 }
 
 SimplePluginAudioProcessor::~SimplePluginAudioProcessor()
@@ -95,16 +94,6 @@ void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBu
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
         buffer.applyGain (channel, 0, buffer.getNumSamples(), gnLin);
 
-    // TRIM...
-
-    const float trL = getParam(trimL).get();
-    const float trR = getParam(trimR).get();
-    const float trLLin = Decibels::decibelsToGain (trL);
-    const float trRLin = Decibels::decibelsToGain (trR);
-
-    buffer.applyGain(0, 0, buffer.getNumSamples(), trLLin); // Left  trim channel 0
-    buffer.applyGain(1, 0, buffer.getNumSamples(), trRLin); // Right trim channel 1
-
     // SATURATION...
 
     float invertSat = getParam(saturate).get() * -1.0f; // assumes zero-centred
@@ -118,6 +107,14 @@ void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBu
             x[i] = ((satLin + 1) * x[i])         // (s+1)x / (s+|x|)
                     / (satLin + std::abs(x[i]));
     }
+
+    // TRIM...
+
+    const float trdB = getParam(trim).get();
+    const float trLin = Decibels::decibelsToGain (trdB);
+
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        buffer.applyGain (channel, 0, buffer.getNumSamples(), trLin);
 }
 
 //==============================================================================
@@ -175,8 +172,7 @@ void SimplePluginAudioProcessor::setParam (int index, float newValue)
     jassert (params[index]);
     params[index]->setValueNotifyingHost (sliderVal0to1); // setVal needs 0to1
 
-    
-    NonMember::printParams (*this);
+    NonMember::printParams (*this);                                         // debug
 }
 
 //==============================================================================
@@ -197,6 +193,8 @@ void SimplePluginAudioProcessor::setParamsFromXml (const XmlElement& xml)
         const float value = float (xml.getDoubleAttribute (getParam(i).paramID));
         setParam (i, value);
     }
+
+    NonMember::printParams (*this);                                         // debug
 }
 
 
