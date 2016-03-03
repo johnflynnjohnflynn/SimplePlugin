@@ -17,8 +17,26 @@
 
 //==============================================================================
 /**
+    Simple generic editor
+    ---------------------
+    
+    ### Generates sliders automatically from parameters in plugin processor
+
+    Uses processor 'params' container to get details about the parameters
+    (instead of specifying each slider individually as normal). We loop through 
+    the params in the constructor and generate a slider and a label for each 
+    parameter (dynamically on the heap. We use OwnedArrays to manage ownership 
+    and delete). The resized() function positions the sliders according to our
+    RelativeLayout enum.
+    
+    We override sliderValueChanged() to update the processor parameter through
+    the public setParam() function. A timer callback syncs the GUI sliders with 
+    the processor parameters at the rate of 30Hz.
+
 */
-class SimplePluginAudioProcessorEditor  : public AudioProcessorEditor
+class SimplePluginAudioProcessorEditor  : public AudioProcessorEditor,
+                                          public Slider::Listener,
+                                          private Timer
 {
 public:
     SimplePluginAudioProcessorEditor (SimplePluginAudioProcessor&);
@@ -27,8 +45,28 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+    
+    void sliderValueChanged (Slider* changedSlider) override; // On slider change call
+                                                              // setProcParamFromSlider()
 
 private:
+    OwnedArray<Slider> sliders;
+    OwnedArray<Label> labels;
+    
+    void timerCallback() override;                            // Calls updateSliders...()
+
+    void setProcParamFromSlider (const Slider& slider) const; // Communication between
+    void updateSlidersFromProcParams();                       // GUI editor and processor
+    
+    enum RelativeLayout                                       // Measurements for
+    {                                                         // relative GUI layout
+        unit = 8, // pixels
+        width = 64 * unit,
+        margin = 2 * unit,
+        widthComponent = width - margin * 2,
+        heightComponent = 3 * unit
+    };
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimplePluginAudioProcessor& processor;

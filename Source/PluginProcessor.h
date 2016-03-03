@@ -11,6 +11,7 @@
 #ifndef PLUGINPROCESSOR_H_INCLUDED
 #define PLUGINPROCESSOR_H_INCLUDED
 
+#include <sstream>                              // (for debug with printParams())
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
@@ -24,8 +25,8 @@
     - Need specify parameters only in processor constructor
     - Automatically handles GUI sliders and creates a simple generic editor.
     
-    To implement our parameters are created on the heap rather than the stack. We
-    keep a view container 'params' for easy access (and to remove the need to
+    To implement our parameters are created on the heap rather than the stack.
+    We keep a view container 'params' for easy access (and to remove the need to
     dynamic_cast), before adding the parameters to the plugin using 
     addParameter() as usual.
     
@@ -67,6 +68,12 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    //==============================================================================
+    int numParams() const { return static_cast<int> (params.size()); }  // cast size_t
+
+    const AudioParameterFloat& getParam (int index) const;
+    void setParam (int index, float newValue);
 
 private:
     enum ParameterNames                         // List symbolic names here
@@ -91,6 +98,7 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimplePluginAudioProcessor)
 };
+
 
 namespace NonMember {                           // Some helper functions that don't
                                                 // need to be inside the processor

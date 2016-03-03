@@ -15,15 +15,25 @@
 //==============================================================================
 SimplePluginAudioProcessor::SimplePluginAudioProcessor()
 {
-    addParameter (new AudioParameterFloat {"GainID", "Gain", -12.0f, 12.0f, 0.0f});
+                // Specify and create our parameters here (on the heap using new)
+                // (Hold pointers to the AudioParameterFloats in our params view)
+                //                             ParamID       Name        Min     Max    Default
+    params.push_back (new AudioParameterFloat {"GainID",     "Gain",     -12.0f, 12.0f,   0.0f});
+    params.push_back (new AudioParameterFloat {"TrimLID",    "TrimL",    -96.0f,  0.0f,   0.0f});
+    params.push_back (new AudioParameterFloat {"TrimRID",    "TrimR",    -96.0f,  0.0f,   0.0f});
+    params.push_back (new AudioParameterFloat {"SaturateID", "Saturate", -10.0f, 10.0f, -10.0f});
 
-    Logger::outputDebugString (static_cast<String> (getNumParameters()));
 
-    Logger::outputDebugString (static_cast<String> (getParameters()[0]->getValue()));
+                // We add the parameters to the processor, passing ownership to
+                // the processor managed OwnedArray<AudioProcessorParameter>
+    for (const auto& p : params) addParameter(p);
+
+    NonMember::printParams(*this);
 }
 
 SimplePluginAudioProcessor::~SimplePluginAudioProcessor()
 {
+    // parameter deletes handled by processor OwnedArray
 }
 
 //==============================================================================
@@ -72,20 +82,41 @@ void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBu
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    const float gndB = 0.0f; //gain->get();
-    const float gnLin = Decibels::decibelsToGain (gndB);
-
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        float* channelData = buffer.getWritePointer (channel);
 
-        // ..do something to the data...
+    // GAIN...
+
+                // Per-block basis gain (fine for now but probably exhibits
+                // zipper noise on fast automation)
+    const float gndB = getParam(gain).get();
+    const float gnLin = Decibels::decibelsToGain (gndB);
+    
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        buffer.applyGain (channel, 0, buffer.getNumSamples(), gnLin);
+
+    // TRIM...
+
+    const float trL = getParam(trimL).get();
+    const float trR = getParam(trimR).get();
+    const float trLLin = Decibels::decibelsToGain (trL);
+    const float trRLin = Decibels::decibelsToGain (trR);
+
+    buffer.applyGain(0, 0, buffer.getNumSamples(), trLLin); // Left  trim channel 0
+    buffer.applyGain(1, 0, buffer.getNumSamples(), trRLin); // Right trim channel 1
+
+    // SATURATION...
+
+    float invertSat = getParam(saturate).get() * -1.0f; // assumes zero-centred
+    float satLin = Decibels::decibelsToGain (invertSat);
+
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        float* x = buffer.getWritePointer (channel);
 
         for (int i = 0; i < buffer.getNumSamples(); ++i)
-            channelData[i] *= gnLin;
-            
+            x[i] = ((satLin + 1) * x[i])         // (s+1)x / (s+|x|)
+                    / (satLin + std::abs(x[i]));
     }
 }
 
@@ -101,12 +132,22 @@ void SimplePluginAudioProcessor::getStateInformation (MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+
+    XmlElement xml ("MYPLUGINSETTINGS");
+
+    writeParamsToXml (xml);
+    copyXmlToBinary (xml, destData);
 }
 
 void SimplePluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+
+    ScopedPointer<XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+
+    if (xmlState)
+        if (xmlState->hasTagName ("MYPLUGINSETTINGS")) setParamsFromXml (*xmlState);
 }
 
 //==============================================================================
@@ -114,4 +155,70 @@ void SimplePluginAudioProcessor::setStateInformation (const void* data, int size
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SimplePluginAudioProcessor();
+}
+
+//==============================================================================
+const AudioParameterFloat& SimplePluginAudioProcessor::getParam (int index) const
+{
+    jassert (NonMember::indexInVector (index, params));
+    jassert (params[index]);
+
+    return *params[index];
+}
+
+//==============================================================================
+void SimplePluginAudioProcessor::setParam (int index, float newValue)
+{
+    jassert (NonMember::indexInVector (index, params));
+    const float sliderVal0to1 = getParam(index).range.convertTo0to1 (newValue);
+
+    jassert (params[index]);
+    params[index]->setValueNotifyingHost (sliderVal0to1); // setVal needs 0to1
+
+    
+    NonMember::printParams (*this);
+}
+
+//==============================================================================
+void SimplePluginAudioProcessor::writeParamsToXml (XmlElement& xml)
+{
+    for (int i = 0; i < numParams(); ++i)
+    {
+        const float value = getParam(i).get();
+        xml.setAttribute (getParam(i).paramID, value);
+    }
+}
+
+//==============================================================================
+void SimplePluginAudioProcessor::setParamsFromXml (const XmlElement& xml)
+{
+    for (int i = 0; i < numParams(); ++i)
+    {
+        const float value = float (xml.getDoubleAttribute (getParam(i).paramID));
+        setParam (i, value);
+    }
+}
+
+
+//==============================================================================
+template <typename Element>
+bool NonMember::indexInVector (int index, const std::vector<Element>& container)
+{
+    return (0 <= index && index < static_cast<int> (container.size())); // cast size_t
+}
+
+//==============================================================================
+void NonMember::printParams(const SimplePluginAudioProcessor& processor)
+{
+    std::ostringstream message;
+
+    for (int i = 0; i < processor.numParams(); ++i) {
+        message << "params_["<<i<<"]="
+                << processor.getParam(i).get() << " "
+                << processor.getParam(i).range.start << " "
+                << processor.getParam(i).range.end << " "
+                << processor.getParam(i).range.interval << "\n";
+    }
+
+    Logger::outputDebugString ((String) message.str());
 }
