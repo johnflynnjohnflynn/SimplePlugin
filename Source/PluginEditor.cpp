@@ -32,6 +32,11 @@ SimplePluginAudioProcessorEditor::SimplePluginAudioProcessorEditor (SimplePlugin
         newSlider->setColour (Slider::textBoxBackgroundColourId, Colour (0xff909090));
         newSlider->setDoubleClickReturnValue (true, param.get()); // param.get() is
                                                                   // now default value
+
+        newSlider->setRange (param.range.start,     // set min/max values
+                             param.range.end,
+                             param.range.interval);
+
         addAndMakeVisible (newSlider);
 
         newSlider->addListener (this);
@@ -127,9 +132,6 @@ void SimplePluginAudioProcessorEditor::updateSlidersFromProcParams()
 
         jassert (i < sliders.size());
         jassert (sliders[i]);
-        sliders[i]->setRange (p.range.start,
-                              p.range.end,
-                              p.range.interval);
         sliders[i]->setValue (static_cast<double> (p.get()), dontSendNotification);
     }                                              // p.get() is a float
 }
