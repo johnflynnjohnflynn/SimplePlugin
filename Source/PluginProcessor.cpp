@@ -15,6 +15,11 @@
 //==============================================================================
 SimplePluginAudioProcessor::SimplePluginAudioProcessor()
 {
+    addParameter (new AudioParameterFloat {"GainID", "Gain", -12.0f, 12.0f, 0.0f});
+
+    Logger::outputDebugString (static_cast<String> (getNumParameters()));
+
+    Logger::outputDebugString (static_cast<String> (getParameters()[0]->getValue()));
 }
 
 SimplePluginAudioProcessor::~SimplePluginAudioProcessor()
@@ -22,11 +27,6 @@ SimplePluginAudioProcessor::~SimplePluginAudioProcessor()
 }
 
 //==============================================================================
-const String SimplePluginAudioProcessor::getName() const
-{
-    return JucePlugin_Name;
-}
-
 bool SimplePluginAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
@@ -43,35 +43,6 @@ bool SimplePluginAudioProcessor::producesMidi() const
    #else
     return false;
    #endif
-}
-
-double SimplePluginAudioProcessor::getTailLengthSeconds() const
-{
-    return 0.0;
-}
-
-int SimplePluginAudioProcessor::getNumPrograms()
-{
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
-}
-
-int SimplePluginAudioProcessor::getCurrentProgram()
-{
-    return 0;
-}
-
-void SimplePluginAudioProcessor::setCurrentProgram (int index)
-{
-}
-
-const String SimplePluginAudioProcessor::getProgramName (int index)
-{
-    return String();
-}
-
-void SimplePluginAudioProcessor::changeProgramName (int index, const String& newName)
-{
 }
 
 //==============================================================================
@@ -101,6 +72,9 @@ void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBu
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    const float gndB = 0.0f; //gain->get();
+    const float gnLin = Decibels::decibelsToGain (gndB);
+
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
@@ -108,15 +82,14 @@ void SimplePluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBu
         float* channelData = buffer.getWritePointer (channel);
 
         // ..do something to the data...
+
+        for (int i = 0; i < buffer.getNumSamples(); ++i)
+            channelData[i] *= gnLin;
+            
     }
 }
 
 //==============================================================================
-bool SimplePluginAudioProcessor::hasEditor() const
-{
-    return true; // (change this to false if you choose to not supply an editor)
-}
-
 AudioProcessorEditor* SimplePluginAudioProcessor::createEditor()
 {
     return new SimplePluginAudioProcessorEditor (*this);

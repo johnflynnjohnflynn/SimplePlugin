@@ -16,6 +16,22 @@
 
 //==============================================================================
 /**
+    SimplePlugin
+    ------------
+    
+    ### A bare bones plugin with a default generic GUI.
+    
+    - Need specify parameters only in processor constructor
+    - Automatically handles GUI sliders and creates a simple generic editor.
+    
+    To implement our parameters are created on the heap rather than the stack. We
+    keep a view container 'params' for easy access (and to remove the need to
+    dynamic_cast), before adding the parameters to the plugin using 
+    addParameter() as usual.
+    
+    Our generic GUI editor accesses the params through public getParam() function 
+    and should change a parameter value only through the public writeParam().
+
 */
 class SimplePluginAudioProcessor  : public AudioProcessor
 {
@@ -32,27 +48,31 @@ public:
 
     //==============================================================================
     AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override;
+    bool hasEditor() const override                   { return true; }
 
     //==============================================================================
-    const String getName() const override;
+    const String getName() const override             { return JucePlugin_Name; }
 
     bool acceptsMidi() const override;
     bool producesMidi() const override;
-    double getTailLengthSeconds() const override;
+    double getTailLengthSeconds() const override      { return 0.0; }
 
     //==============================================================================
-    int getNumPrograms() override;
-    int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const String getProgramName (int index) override;
-    void changeProgramName (int index, const String& newName) override;
+    int getNumPrograms() override                            { return 1; }
+    int getCurrentProgram() override                         { return 0; }
+    void setCurrentProgram (int /*index*/) override          { }
+    const String getProgramName (int /*index*/) override     { return String(); }
+    void changeProgramName (int /*index*/, const String& /*newName*/) override { }
 
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    //AudioParameterFloat* gain;
+
+    //const OwnedArray<AudioProcessorParameter>& paramsView;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimplePluginAudioProcessor)
 };
