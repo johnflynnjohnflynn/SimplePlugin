@@ -20,9 +20,9 @@
     SimplePlugin
     ------------
     
-    ### A bare bones plugin with a default generic GUI.
+    ### Bare bones audio plugin with default generic GUI using JUCE.
     
-    - Need specify parameters only in processor constructor
+    - Need specify parameters only in processor constructor.
     - Automatically handles GUI sliders and creates a simple generic editor.
     
     To implement our parameters are created on the heap rather than the stack.
