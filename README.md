@@ -14,3 +14,5 @@ Good example if you've looked at the JUCE tutorials/example plugins and are wond
 To implement parameters are created on the heap rather than the stack. A view container 'params' is kept for easy access (and to remove the need to dynamic_cast), before adding the parameters to the plugin using addParameter() as usual.
 
 A generic GUI editor accesses the params through public getParam() function and should change a parameter value only through the public writeParam().
+
+[www.johnflynn.info](http://www.johnflynn.info/)
