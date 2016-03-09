@@ -199,6 +199,7 @@ void SimplePluginAudioProcessor::setParamsFromXml (const XmlElement& xml)
 
 
 //==============================================================================
+//==============================================================================
 template <typename Element>
 bool NonMember::indexInVector (int index, const std::vector<Element>& container)
 {
@@ -206,17 +207,14 @@ bool NonMember::indexInVector (int index, const std::vector<Element>& container)
 }
 
 //==============================================================================
-void NonMember::printParams(const SimplePluginAudioProcessor& processor)
+void NonMember::printParams(const AudioProcessor& processor)
 {
-    std::ostringstream message;
+    String message;
 
-    for (int i = 0; i < processor.numParams(); ++i) {
-        message << "params_["<<i<<"]="
-                << processor.getParam(i).get() << " "
-                << processor.getParam(i).range.start << " "
-                << processor.getParam(i).range.end << " "
-                << processor.getParam(i).range.interval << "\n";
+    for (int i = 0; i < processor.getParameters().size(); ++i) {
+        message << processor.getParameters()[i]->getName(64) << "="
+                << processor.getParameters()[i]->getValue()  << "\n";
     }
 
-    Logger::outputDebugString ((String) message.str());
+    Logger::outputDebugString (message);
 }

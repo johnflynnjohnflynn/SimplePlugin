@@ -11,7 +11,6 @@
 #ifndef PLUGINPROCESSOR_H_INCLUDED
 #define PLUGINPROCESSOR_H_INCLUDED
 
-#include <sstream>                              // (for debug with printParams())
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
@@ -99,12 +98,13 @@ private:
 };
 
 
-namespace NonMember {                           // Some helper functions that don't
-                                                // need to be inside the processor
+namespace NonMember // Some helper functions that don't need to be inside the processor
+{
+
 template <typename Element>
 bool indexInVector (int index, const std::vector<Element>& container);
 
-void printParams(const SimplePluginAudioProcessor& processor); // for debugging
+void printParams(const AudioProcessor& processor); // for debugging
 
 } // namespace NonMember
 
