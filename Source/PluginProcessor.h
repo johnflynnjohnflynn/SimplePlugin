@@ -90,9 +90,6 @@ private:
                                                 // owns the parameters not this
                                                 // container)
 
-    void writeParamsToXml (XmlElement& xml);        // (Use XML of parameters state
-    void setParamsFromXml (const XmlElement& xml);  // for host/plugin communications)
-
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimplePluginAudioProcessor)
 };
