@@ -28,9 +28,6 @@
     We keep a view container 'params' for easy access (and to remove the need to
     dynamic_cast), before adding the parameters to the plugin using 
     addParameter() as usual.
-    
-    Our generic GUI editor accesses the params through public getParam() function 
-    and should change a parameter value only through the public writeParam().
 
 */
 class SimplePluginAudioProcessor  : public AudioProcessor
