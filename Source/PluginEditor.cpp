@@ -16,8 +16,8 @@
 SimplePluginAudioProcessorEditor::SimplePluginAudioProcessorEditor (SimplePluginAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
-    for (int i = 0; i < processor.numParams(); ++i) // Add GUI slider/label for
-    {                                               // every parameter in params
+    for (int i = 0; i < processor.getNumParameters(); ++i) // Add GUI slider/label for
+    {                                                      // every parameter in params
 
         jassert (processor.getParameters()[i]);
         AudioProcessorParameter& param = *processor.getParameters()[i];
@@ -48,7 +48,8 @@ SimplePluginAudioProcessorEditor::SimplePluginAudioProcessorEditor (SimplePlugin
 
         addAndMakeVisible (aLabel);
     }
-    jassert (sliders.size() == labels.size());
+    jassert (processor.getParameters().size() == labels.size());
+    jassert (processor.getParameters().size() == sliders.size());
 
     const int numRows = sliders.size(); // set width and height of editor
     const int height = margin           // (must be set before xtor finished)

@@ -69,8 +69,6 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     //==============================================================================
-    int numParams() const { return static_cast<int> (params.size()); }  // cast size_t
-
     const AudioParameterFloat& getParam (int index) const;
     void setParam (int index, float newValue);
 
