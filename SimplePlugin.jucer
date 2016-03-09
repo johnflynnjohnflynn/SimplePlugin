@@ -12,6 +12,8 @@
               companyName="JohnFlynn" companyWebsite="www.johnflynn.info" companyEmail="contact@johnflynn.info">
   <MAINGROUP id="uYptwe" name="SimplePlugin">
     <GROUP id="{0FA15B51-8BBD-A40C-6888-3F06CFAE2014}" name="Source">
+      <FILE id="QXwPSi" name="ParameterSlider.h" compile="0" resource="0"
+            file="Source/ParameterSlider.h"/>
       <FILE id="GPLIMq" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="mcMPov" name="PluginProcessor.h" compile="0" resource="0"

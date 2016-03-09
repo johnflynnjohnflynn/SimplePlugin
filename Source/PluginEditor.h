@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
+#include "ParameterSlider.h"
 
 
 //==============================================================================
@@ -34,9 +35,7 @@
     the processor parameters at the rate of 30Hz.
 
 */
-class SimplePluginAudioProcessorEditor  : public AudioProcessorEditor,
-                                          public Slider::Listener,
-                                          private Timer
+class SimplePluginAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
     SimplePluginAudioProcessorEditor (SimplePluginAudioProcessor&);
@@ -45,18 +44,10 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
-    
-    void sliderValueChanged (Slider* changedSlider) override; // On slider change call
-                                                              // setProcParamFromSlider()
 
 private:
-    OwnedArray<Slider> sliders;
+    OwnedArray<ParameterSlider> sliders;
     OwnedArray<Label> labels;
-    
-    void timerCallback() override;                            // Calls updateSliders...()
-
-    void setProcParamFromSlider (const Slider& slider) const; // Communication between
-    void updateSlidersFromProcParams();                       // GUI editor and processor
     
     enum RelativeLayout                                       // Measurements for
     {                                                         // relative GUI layout

@@ -19,9 +19,10 @@ SimplePluginAudioProcessorEditor::SimplePluginAudioProcessorEditor (SimplePlugin
     for (int i = 0; i < processor.numParams(); ++i) // Add GUI slider/label for
     {                                               // every parameter in params
 
-        const AudioParameterFloat& param = processor.getParam(i);
+        jassert (processor.getParameters()[i]);
+        AudioProcessorParameter& param = *processor.getParameters()[i];
 
-        Slider* newSlider = new Slider (param.name);
+        ParameterSlider* newSlider = new ParameterSlider (param);
         jassert (newSlider);
         sliders.add (newSlider);
 
@@ -30,18 +31,11 @@ SimplePluginAudioProcessorEditor::SimplePluginAudioProcessorEditor (SimplePlugin
         newSlider->setColour (Slider::thumbColourId, Colours::silver);
         newSlider->setColour (Slider::textBoxTextColourId, Colour (0xff404040));
         newSlider->setColour (Slider::textBoxBackgroundColourId, Colour (0xff909090));
-        newSlider->setDoubleClickReturnValue (true, param.get()); // param.get() is
-                                                                  // now default value
-
-        newSlider->setRange (param.range.start,     // set min/max values
-                             param.range.end,
-                             param.range.interval);
-
+        newSlider->setDoubleClickReturnValue (true, param.getValue()); // param.getValue() is
+                                                                       // now default value
         addAndMakeVisible (newSlider);
 
-        newSlider->addListener (this);
-
-        const String name = param.name;
+        const String name = param.getName(128);
         Label* aLabel = new Label (name, name);
         jassert (aLabel);
         labels.add (aLabel);
@@ -56,15 +50,11 @@ SimplePluginAudioProcessorEditor::SimplePluginAudioProcessorEditor (SimplePlugin
     }
     jassert (sliders.size() == labels.size());
 
-    updateSlidersFromProcParams();      // set slider values and ranges
-
     const int numRows = sliders.size(); // set width and height of editor
     const int height = margin           // (must be set before xtor finished)
                      + numRows * 2 * heightComponent
                      + margin / 2;
     setSize (width, height);
-
-    startTimerHz (30);                  // Start our timerCallBack()
 }
 
 SimplePluginAudioProcessorEditor::~SimplePluginAudioProcessorEditor()
@@ -98,42 +88,5 @@ void SimplePluginAudioProcessorEditor::resized()
                               margin + i * 2 * heightComponent,
                               widthComponent,
                               heightComponent);
-    }
-}
-
-//==============================================================================
-void SimplePluginAudioProcessorEditor::sliderValueChanged (Slider* movedSlider)
-{
-    jassert (movedSlider);
-    setProcParamFromSlider (*movedSlider);
-}
-
-//==============================================================================
-void SimplePluginAudioProcessorEditor::timerCallback()
-{
-    updateSlidersFromProcParams();
-}
-
-//==============================================================================
-void SimplePluginAudioProcessorEditor::setProcParamFromSlider (const Slider& slider) const
-{
-    int i = sliders.indexOf (&slider);
-    const float sliderVal = static_cast<float> (slider.getValue()); // getValue()
-                                                                    // is double
-    processor.setParam (i, sliderVal);
-}
-
-//==============================================================================
-void SimplePluginAudioProcessorEditor::updateSlidersFromProcParams()
-{
-    for (int i = 0; i < processor.numParams(); ++i)
-    {
-        const auto& p = processor.getParam(i);
-
-        jassert (i < sliders.size());
-        jassert (sliders[i]);
-
-                            // (sliders have double values, parameters have floats)
-        sliders[i]->setValue (static_cast<double> (p.get()), dontSendNotification);
     }
 }

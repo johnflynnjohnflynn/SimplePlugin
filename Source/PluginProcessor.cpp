@@ -130,9 +130,18 @@ void SimplePluginAudioProcessor::getStateInformation (MemoryBlock& destData)
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 
+    // You should use this method to store your parameters in the memory block.
+    // Here's an example of how you can use XML to make it easy and more robust:
+
+    // Create an outer XML element..
     XmlElement xml ("MYPLUGINSETTINGS");
 
-    writeParamsToXml (xml);
+    // Store the values of all our parameters, using their param ID as the XML attribute
+    for (int i = 0; i < getNumParameters(); ++i)
+        if (AudioProcessorParameterWithID* p = dynamic_cast<AudioProcessorParameterWithID*> (getParameters().getUnchecked(i)))
+            xml.setAttribute (p->paramID, p->getValue());
+
+    // then use this helper function to stuff it into the binary blob and return it..
     copyXmlToBinary (xml, destData);
 }
 
@@ -141,10 +150,20 @@ void SimplePluginAudioProcessor::setStateInformation (const void* data, int size
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 
+    // This getXmlFromBinary() helper function retrieves our XML from the binary blob..
     ScopedPointer<XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
 
-    if (xmlState)
-        if (xmlState->hasTagName ("MYPLUGINSETTINGS")) setParamsFromXml (*xmlState);
+    if (xmlState != nullptr)
+    {
+        // make sure that it's actually our type of XML object..
+        if (xmlState->hasTagName ("MYPLUGINSETTINGS"))
+        {
+            // Now reload our parameters..
+            for (int i = 0; i < getNumParameters(); ++i)
+                if (AudioProcessorParameterWithID* p = dynamic_cast<AudioProcessorParameterWithID*> (getParameters().getUnchecked(i)))
+                    p->setValueNotifyingHost ((float) xmlState->getDoubleAttribute (p->paramID, p->getValue()));
+        }
+    }
 }
 
 //==============================================================================
@@ -174,29 +193,6 @@ void SimplePluginAudioProcessor::setParam (int index, float newValue)
 
     NonMember::printParams (*this);                                         // debug
 }
-
-//==============================================================================
-void SimplePluginAudioProcessor::writeParamsToXml (XmlElement& xml)
-{
-    for (int i = 0; i < numParams(); ++i)
-    {
-        const float value = getParam(i).get();
-        xml.setAttribute (getParam(i).paramID, value);
-    }
-}
-
-//==============================================================================
-void SimplePluginAudioProcessor::setParamsFromXml (const XmlElement& xml)
-{
-    for (int i = 0; i < numParams(); ++i)
-    {
-        const float value = float (xml.getDoubleAttribute (getParam(i).paramID));
-        setParam (i, value);
-    }
-
-    NonMember::printParams (*this);                                         // debug
-}
-
 
 //==============================================================================
 //==============================================================================
